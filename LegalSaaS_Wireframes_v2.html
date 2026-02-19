@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LegalSaaS — Portal Design System</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── Design Tokens ─────────────────────────────────────────── */
+:root {
+  /* Tenant Portal Palette — Enterprise, serious, refined */
+  --t-ink:       #0F1923;
+  --t-ink-2:     #2C3A4A;
+  --t-ink-3:     #536172;
+  --t-muted:     #8C9BAB;
+  --t-border:    #D8E0E8;
+  --t-border-2:  #EBF0F5;
+  --t-surface:   #F4F7FA;
+  --t-surface-2: #FAFBFC;
+  --t-white:     #FFFFFF;
+  --t-blue:      #1A56DB;
+  --t-blue-2:    #1E40AF;
+  --t-blue-bg:   #EFF4FF;
+  --t-blue-mid:  #BFDBFE;
+  --t-teal:      #0E7490;
+  --t-teal-bg:   #ECFEFF;
+  --t-green:     #057A55;
+  --t-green-bg:  #ECFDF5;
+  --t-amber:     #B45309;
+  --t-amber-bg:  #FFFBEB;
+  --t-red:       #B91C1C;
+  --t-red-bg:    #FEF2F2;
+  --t-purple:    #5B21B6;
+  --t-purple-bg: #F5F3FF;
+
+  /* Chrome */
+  --chrome-bg:   #141E2B;
+  --chrome-2:    #1C2A3A;
+  --chrome-3:    #243347;
+
+  --ff-display: 'Libre Baskerville', Georgia, serif;
+  --ff-body:    'IBM Plex Sans', system-ui, sans-serif;
+  --ff-mono:    'IBM Plex Mono', monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--ff-body); background: var(--chrome-bg); color: var(--t-ink); overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+
+/* ─── CHROME TOP BAR ─────────────────────────────────────────── */
+#chrome-bar {
+  height: 48px;
+  background: var(--chrome-2);
+  border-bottom: 1px solid var(--chrome-3);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.chrome-logo {
+  font-family: var(--ff-display);
+  font-size: 15px;
+  color: white;
+  opacity: 0.9;
+  margin-right: 8px;
+  letter-spacing: -0.3px;
+}
+.chrome-logo em { color: #60A5FA; font-style: normal; }
+
+/* Portal tabs */
+.portal-tabs { display: flex; gap: 2px; }
+.portal-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  color: rgba(255,255,255,0.45);
+  transition: all 0.15s;
+  position: relative;
+}
+.portal-tab:hover { color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.05); }
+.portal-tab.active { background: #1A56DB; color: white; border-color: rgba(255,255,255,0.15); }
+.portal-tab.v2 { color: rgba(255,255,255,0.25); cursor: default; }
+.portal-tab .v2-badge {
+  font-size: 9px;
+  font-weight: 700;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.4);
+  padding: 1px 5px;
+  border-radius: 3px;
+  letter-spacing: 0.05em;
+}
+
+/* Screen nav */
+.screen-nav { display: flex; align-items: center; gap: 8px; margin-left: 12px; }
+.screen-nav-label { font-size: 10px; color: rgba(255,255,255,0.3); font-family: var(--ff-mono); text-transform: uppercase; letter-spacing: 0.08em; }
+.screen-select-wrap { position: relative; }
+#screen-select {
+  appearance: none;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.8);
+  padding: 4px 28px 4px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: var(--ff-body);
+  cursor: pointer;
+  outline: none;
+  min-width: 220px;
+}
+#screen-select option { background: #1C2A3A; }
+.screen-select-arrow { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.4); font-size: 10px; pointer-events: none; }
+
+/* Zoom */
+.zoom-group { margin-left: auto; display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); border-radius: 5px; padding: 2px; }
+.zoom-btn { background: transparent; border: none; color: rgba(255,255,255,0.5); width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+.zoom-btn:hover { background: rgba(255,255,255,0.08); color: white; }
+.zoom-pct { font-size: 11px; color: rgba(255,255,255,0.4); width: 38px; text-align: center; font-family: var(--ff-mono); }
+
+/* ─── CANVAS ─────────────────────────────────────────────────── */
+#canvas {
+  flex: 1;
+  overflow: auto;
+  background: #0D1520;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 20px 20px;
+  display: flex;
+  padding: 32px;
+  align-items: flex-start;
+  justify-content: center;
+}
+#canvas-scale { transform-origin: top center; transition: transform 0.2s ease; }
+
+/* Screen frame */
+.screen {
+  width: 1440px;
+  min-height: 900px;
+  background: var(--t-white);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05);
+  display: none;
+  flex-direction: column;
+}
+.screen.active { display: flex; }
+
+/* Screen annotation bar */
+.screen-meta {
+  height: 32px;
+  background: var(--chrome-3);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+.screen-meta .sid {
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  font-weight: 500;
+  background: var(--t-blue);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+.screen-meta .sname { font-size: 11px; color: rgba(255,255,255,0.55); font-family: var(--ff-mono); }
+.screen-meta .sdomain { margin-left: auto; font-family: var(--ff-mono); font-size: 10px; color: rgba(255,255,255,0.2); }
+
+/* ═══════════════════════════════════════════════════════════════
+   TENANT PORTAL LAYOUT PRIMITIVES
+═══════════════════════════════════════════════════════════════ */
+
+/* App shell */
+.t-shell { display: flex; flex: 1; overflow: hidden; }
+
+/* Top bar */
+.t-topbar {
+  height: 52px;
+  background: var(--t-ink);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 0;
+  flex-shrink: 0;
+}
+.t-logo {
+  font-family: var(--ff-display);
+  font-size: 16px;
+  color: white;
+  letter-spacing: -0.2px;
+  padding-right: 20px;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  margin-right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.t-logo em { color: #60A5FA; font-style: normal; }
+.t-tenant-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.t-topbar-nav { display: flex; gap: 2px; margin-left: 28px; }
+.t-nav-item {
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.45);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.12s;
+  white-space: nowrap;
+}
+.t-nav-item:hover { color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.06); }
+.t-nav-item.active { color: white; background: rgba(255,255,255,0.1); }
+.t-topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.t-role-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.t-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+}
+.t-notif {
+  width: 30px; height: 30px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  font-size: 14px;
+  position: relative;
+}
+.t-notif::after { content:''; position:absolute; top:5px;right:5px;width:6px;height:6px;background:var(--t-red);border-radius:50%; }
+
+/* Left sidebar */
+.t-sidebar {
+  width: 224px;
+  background: var(--t-surface-2);
+  border-right: 1px solid var(--t-border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+.t-sb-section { padding: 14px 10px 6px; }
+.t-sb-label { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--t-muted); padding: 0 8px; margin-bottom: 3px; }
+.t-sb-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 10px;
+  border-radius: 5px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--t-ink-3);
+  cursor: pointer;
+  transition: all 0.12s;
+  position: relative;
+}
+.t-sb-item:hover { background: var(--t-border-2); color: var(--t-ink); }
+.t-sb-item.active { background: var(--t-blue-bg); color: var(--t-blue); }
+.t-sb-item.active::before { content:''; position:absolute; left:0; top:4px; bottom:4px; width:3px; background:var(--t-blue); border-radius:0 2px 2px 0; }
+.t-sb-icon { width: 18px; text-align: center; font-size: 14px; opacity: 0.8; flex-shrink: 0; }
+.t-sb-count { margin-left: auto; font-size: 10px; font-family: var(--ff-mono); color: var(--t-muted); font-weight: 500; }
+.t-sb-badge { margin-left: auto; background: var(--t-red); color: white; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 10px; }
+.t-sb-divider { height: 1px; background: var(--t-border); margin: 8px 10px; }
+
+/* Main workspace — MASTER/DETAIL pattern */
+.t-workspace { flex: 1; display: flex; overflow: hidden; background: var(--t-surface); }
+
+/* Master pane */
+.t-master {
+  width: 380px;
+  border-right: 1px solid var(--t-border);
+  background: var(--t-white);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.t-master-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--t-border);
+  background: var(--t-white);
+  flex-shrink: 0;
+}
+.t-master-title { font-size: 12px; font-weight: 700; color: var(--t-ink); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.t-search-input {
+  width: 100%;
+  padding: 7px 10px 7px 30px;
+  border: 1px solid var(--t-border);
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: var(--ff-body);
+  color: var(--t-ink-2);
+  background: var(--t-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238C9BAB' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") 10px center / 12px no-repeat;
+  outline: none;
+}
+.t-search-input:focus { border-color: var(--t-blue); box-shadow: 0 0 0 2px rgba(26,86,219,0.1); }
+.t-master-list { flex: 1; overflow-y: auto; }
+.t-list-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--t-border-2);
+  cursor: pointer;
+  transition: background 0.1s;
+  position: relative;
+}
+.t-list-item:hover { background: var(--t-surface); }
+.t-list-item.selected { background: var(--t-blue-bg); border-left: 3px solid var(--t-blue); }
+.t-list-item .item-title { font-size: 13px; font-weight: 600; color: var(--t-ink); margin-bottom: 2px; }
+.t-list-item .item-sub { font-size: 11px; color: var(--t-muted); }
+.t-list-item .item-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 5px; }
+.t-list-item .item-badges { display: flex; gap: 4px; }
+
+/* Detail pane */
+.t-detail {
+  flex: 1;
+  background: var(--t-white);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.t-detail-topbar {
+  height: 48px;
+  background: var(--t-white);
+  border-bottom: 1px solid var(--t-border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.t-breadcrumb { font-size: 11px; color: var(--t-muted); display: flex; align-items: center; gap: 4px; }
+.t-breadcrumb span { color: var(--t-ink-2); font-weight: 500; }
+.t-detail-actions { margin-left: auto; display: flex; gap: 6px; }
+
+/* Detail header card */
+.t-detail-hero {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--t-border);
+  background: var(--t-surface-2);
+  flex-shrink: 0;
+}
+.t-entity-header { display: flex; align-items: flex-start; gap: 14px; }
+.t-entity-icon {
+  width: 44px; height: 44px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+}
+.t-entity-name { font-family: var(--ff-display); font-size: 20px; color: var(--t-ink); font-weight: 700; line-height: 1.1; margin-bottom: 4px; }
+.t-entity-meta { font-size: 11px; color: var(--t-muted); display: flex; gap: 12px; flex-wrap: wrap; }
+.t-entity-meta span { display: flex; align-items: center; gap: 3px; }
+.t-badges { display: flex; gap: 6px; margin-top: 8px; }
+
+/* Tab bar inside detail */
+.t-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--t-border);
+  background: var(--t-white);
+  padding: 0 20px;
+  flex-shrink: 0;
+}
+.t-tab {
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--t-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all 0.12s;
+  letter-spacing: 0.01em;
+}
+.t-tab:hover { color: var(--t-ink-2); }
+.t-tab.active { color: var(--t-blue); border-bottom-color: var(--t-blue); }
+.t-tab .tab-count { font-size: 10px; background: var(--t-border); color: var(--t-muted); border-radius: 8px; padding: 0 5px; margin-left: 4px; }
+.t-tab.active .tab-count { background: var(--t-blue-mid); color: var(--t-blue); }
+
+/* Detail scroll area */
+.t-detail-body { flex: 1; overflow-y: auto; padding: 20px 24px; background: var(--t-surface); }
+
+/* Right panel (optional 3-col) */
+.t-side-panel {
+  width: 280px;
+  border-left: 1px solid var(--t-border);
+  background: var(--t-white);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.t-panel-section { padding: 16px; border-bottom: 1px solid var(--t-border-2); }
+.t-panel-label { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t-muted); margin-bottom: 10px; }
+.t-field { margin-bottom: 12px; }
+.t-field-label { font-size: 10px; font-weight: 600; color: var(--t-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+.t-field-value { font-size: 12.5px; color: var(--t-ink-2); font-weight: 500; }
+.t-field-link { color: var(--t-blue); cursor: pointer; }
+
+/* ─── REUSABLE COMPONENTS ────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 14px; border-radius: 5px;
+  font-size: 12px; font-weight: 600;
+  cursor: pointer; border: 1px solid transparent;
+  font-family: var(--ff-body); transition: all 0.12s; white-space: nowrap;
+}
+.btn-primary { background: var(--t-blue); color: white; border-color: var(--t-blue-2); }
+.btn-primary:hover { background: var(--t-blue-2); }
+.btn-secondary { background: var(--t-white); color: var(--t-ink-2); border-color: var(--t-border); }
+.btn-secondary:hover { background: var(--t-surface); }
+.btn-ghost { background: transparent; color: var(--t-muted); border-color: transparent; }
+.btn-ghost:hover { color: var(--t-ink-2); background: var(--t-surface); }
+.btn-danger { background: var(--t-red-bg); color: var(--t-red); border-color: #FECACA; }
+.btn-success { background: var(--t-green-bg); color: var(--t-green); border-color: #A7F3D0; }
+.btn-xs { padding: 4px 9px; font-size: 11px; }
+.btn-sm { padding: 5px 11px; font-size: 11px; }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 8px; border-radius: 3px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.03em;
+}
+.badge-blue { background: var(--t-blue-bg); color: var(--t-blue); }
+.badge-green { background: var(--t-green-bg); color: var(--t-green); }
+.badge-amber { background: var(--t-amber-bg); color: var(--t-amber); }
+.badge-red { background: var(--t-red-bg); color: var(--t-red); }
+.badge-teal { background: var(--t-teal-bg); color: var(--t-teal); }
+.badge-purple { background: var(--t-purple-bg); color: var(--t-purple); }
+.badge-gray { background: var(--t-surface); color: var(--t-muted); border: 1px solid var(--t-border); }
+.badge-ink { background: var(--t-ink); color: white; }
+
+.card {
+  background: var(--t-white);
+  border: 1px solid var(--t-border);
+  border-radius: 6px;
+}
+
+/* Data table */
+.t-table { width: 100%; border-collapse: collapse; }
+.t-table th {
+  background: var(--t-surface);
+  border-bottom: 1px solid var(--t-border);
+  padding: 8px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--t-muted);
+  text-align: left;
+  white-space: nowrap;
+}
+.t-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--t-border-2);
+  font-size: 12.5px;
+  color: var(--t-ink-2);
+  vertical-align: middle;
+}
+.t-table tr:hover td { background: var(--t-surface); }
+.t-table tr:last-child td { border-bottom: none; }
+.cell-primary { font-weight: 600; color: var(--t-ink); }
+.cell-mono { font-family: var(--ff-mono); font-size: 11px; }
+.cell-muted { font-size: 11px; color: var(--t-muted); }
+
+/* Mini avatar */
+.mini-av {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: white;
+  flex-shrink: 0;
+}
+.av-group { display: flex; align-items: center; gap: 8px; }
+
+/* Form components */
+.f-group { margin-bottom: 14px; }
+.f-label { display: block; font-size: 10px; font-weight: 700; color: var(--t-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
+.f-input {
+  width: 100%; padding: 8px 10px;
+  border: 1px solid var(--t-border); border-radius: 4px;
+  font-size: 12.5px; color: var(--t-ink-2);
+  font-family: var(--ff-body); background: var(--t-white); outline: none;
+  transition: border 0.12s;
+}
+.f-input:focus { border-color: var(--t-blue); box-shadow: 0 0 0 2px rgba(26,86,219,0.08); }
+.f-select {
+  width: 100%; padding: 8px 10px;
+  border: 1px solid var(--t-border); border-radius: 4px;
+  font-size: 12.5px; color: var(--t-ink-2);
+  font-family: var(--ff-body); background: var(--t-white); outline: none;
+}
+.f-hint { font-size: 10px; color: var(--t-muted); margin-top: 3px; }
+.f-row { display: grid; gap: 12px; }
+.f-row-2 { grid-template-columns: 1fr 1fr; }
+.f-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+/* Stat cards */
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.stat-card {
+  background: var(--t-white);
+  border: 1px solid var(--t-border);
+  border-radius: 6px;
+  padding: 14px 16px;
+}
+.stat-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--t-muted); margin-bottom: 6px; }
+.stat-value { font-size: 24px; font-weight: 700; color: var(--t-ink); font-family: var(--ff-display); line-height: 1; }
+.stat-sub { font-size: 10px; color: var(--t-muted); margin-top: 4px; }
+.stat-delta-up { color: var(--t-green); font-size: 10px; font-weight: 600; }
+.stat-delta-dn { color: var(--t-red); font-size: 10px; font-weight: 600; }
+
+/* Section heading in body */
+.body-section { background: var(--t-white); border: 1px solid var(--t-border); border-radius: 6px; margin-bottom: 14px; overflow: hidden; }
+.body-section-header { padding: 10px 14px; border-bottom: 1px solid var(--t-border); background: var(--t-surface); display: flex; align-items: center; justify-content: space-between; }
+.body-section-title { font-size: 11px; font-weight: 700; color: var(--t-ink-2); text-transform: uppercase; letter-spacing: 0.06em; }
+.body-section-body { padding: 14px; }
+
+/* Grid layout helpers */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+/* Timeline */
+.timeline { padding: 4px 0; }
+.tl-item { display: flex; gap: 10px; margin-bottom: 12px; }
+.tl-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.tl-line { width: 1px; background: var(--t-border); margin-left: 3.5px; min-height: 24px; }
+.tl-label { font-size: 11.5px; font-weight: 600; color: var(--t-ink-2); }
+.tl-meta { font-size: 10px; color: var(--t-muted); }
+
+/* Progress bar */
+.prog-wrap { background: var(--t-border-2); border-radius: 20px; height: 6px; overflow: hidden; }
+.prog-bar { height: 100%; border-radius: 20px; }
+
+/* Divider */
+.divider { height: 1px; background: var(--t-border-2); margin: 12px 0; }
+
+/* Upload zone */
+.upload-zone {
+  border: 2px dashed var(--t-border);
+  border-radius: 6px;
+  padding: 28px 20px;
+  text-align: center;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+.upload-zone:hover { border-color: var(--t-blue); background: var(--t-blue-bg); }
+
+/* Calendar */
+.cal-header { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 2px; }
+.cal-dh { font-size: 10px; font-weight: 700; color: var(--t-muted); text-align: center; padding: 4px 0; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.cal-day { border: 1px solid var(--t-border-2); border-radius: 4px; padding: 5px; min-height: 64px; }
+.cal-day.today { background: var(--t-blue-bg); border-color: var(--t-blue); }
+.cal-day.other { opacity: 0.35; }
+.cal-num { font-size: 11px; font-weight: 600; color: var(--t-ink-2); margin-bottom: 3px; }
+.cal-today-num { color: var(--t-blue); }
+.cal-ev { font-size: 9px; font-weight: 600; border-radius: 2px; padding: 2px 4px; margin-bottom: 2px; }
+.ev-blue { background: var(--t-blue-bg); color: var(--t-blue); }
+.ev-amber { background: var(--t-amber-bg); color: var(--t-amber); }
+.ev-red { background: var(--t-red-bg); color: var(--t-red); }
+
+/* Activity feed item */
+.act-item { display: flex; gap: 9px; padding: 9px 0; border-bottom: 1px solid var(--t-border-2); align-items: flex-start; }
+.act-item:last-child { border-bottom: none; }
+.act-text { font-size: 12px; color: var(--t-ink-2); }
+.act-text b { color: var(--t-ink); font-weight: 600; }
+.act-time { font-size: 10px; color: var(--t-muted); margin-top: 2px; font-family: var(--ff-mono); }
+
+/* Kanban */
+.kb-board { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+.kb-col { width: 210px; flex-shrink: 0; }
+.kb-col-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px;
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  border-bottom: none;
+  border-radius: 5px 5px 0 0;
+}
+.kb-col-title { font-size: 10px; font-weight: 700; color: var(--t-ink-2); text-transform: uppercase; letter-spacing: 0.07em; }
+.kb-body { background: var(--t-surface-2); border: 1px solid var(--t-border); border-radius: 0 0 5px 5px; padding: 6px; min-height: 280px; }
+.kb-card {
+  background: var(--t-white);
+  border: 1px solid var(--t-border);
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: box-shadow 0.12s;
+}
+.kb-card:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.07); }
+.kb-card-title { font-size: 11.5px; font-weight: 600; color: var(--t-ink); margin-bottom: 5px; line-height: 1.3; }
+.kb-card-meta { font-size: 10px; color: var(--t-muted); }
+.kb-card-foot { margin-top: 7px; display: flex; align-items: center; justify-content: space-between; }
+
+/* Expense row */
+.exp-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--t-border-2); }
+.exp-row:last-child { border-bottom: none; }
+.exp-cat { font-size: 11px; font-weight: 600; color: var(--t-ink-2); flex: 1; }
+.exp-desc { font-size: 10px; color: var(--t-muted); }
+.exp-amt { font-family: var(--ff-mono); font-size: 12px; font-weight: 600; color: var(--t-ink); }
+
+/* Doc row */
+.doc-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--t-border-2); }
+.doc-row:last-child { border-bottom: none; }
+.doc-icon { font-size: 16px; flex-shrink: 0; width: 24px; text-align: center; }
+.doc-name { font-size: 12px; font-weight: 600; color: var(--t-ink-2); }
+.doc-meta { font-size: 10px; color: var(--t-muted); }
+.doc-actions { margin-left: auto; display: flex; gap: 4px; }
+
+/* Seat gauge donut */
+.donut {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.donut-inner {
+  width: 50px; height: 50px;
+  background: var(--t-white);
+  border-radius: 50%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.donut-val { font-size: 14px; font-weight: 700; color: var(--t-ink); font-family: var(--ff-display); }
+.donut-lbl { font-size: 8px; color: var(--t-muted); }
+
+/* Step wizard */
+.wizard-step { display: flex; align-items: center; flex: 1; }
+.wizard-circle {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+  flex-shrink: 0;
+}
+.wz-done { background: var(--t-green); color: white; }
+.wz-active { background: var(--t-blue); color: white; box-shadow: 0 0 0 3px var(--t-blue-bg); }
+.wz-todo { background: var(--t-border); color: var(--t-muted); }
+.wizard-label { font-size: 11px; font-weight: 600; color: var(--t-ink-3); margin-left: 7px; white-space: nowrap; }
+.wizard-line { flex: 1; height: 1px; background: var(--t-border); margin: 0 8px; }
+.wizard-line.done { background: var(--t-green); }
+
+/* Announcement / v2 placeholder */
+.v2-placeholder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--t-surface);
+}
+.v2-box {
+  max-width: 440px;
+  text-align: center;
+  padding: 40px;
+}
+.v2-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+.v2-title { font-family: var(--ff-display); font-size: 22px; color: var(--t-muted); margin-bottom: 8px; }
+.v2-text { font-size: 13px; color: var(--t-muted); line-height: 1.6; }
+.v2-pill { display: inline-block; background: var(--t-amber-bg); color: var(--t-amber); border: 1px solid #FCD34D; border-radius: 4px; font-size: 11px; font-weight: 700; padding: 3px 10px; margin-top: 14px; letter-spacing: 0.04em; }
+
+</style>
+</head>
+<body>
+
+<!-- ═══ CHROME BAR ═══════════════════════════════════════════════════ -->
+<div id="chrome-bar">
+  <div class="chrome-logo">⚖ Legal<em>SaaS</em> <span style="font-size:9px;color:rgba(255,255,255,0.25);font-family:var(--ff-mono);margin-left:6px;">DESIGN SYSTEM v1.0</span></div>
+
+  <div class="portal-tabs">
+    <div class="portal-tab v2" title="V2 — not in MVP scope">🌐 Public Website <span class="v2-badge">V2</span></div>
+    <div class="portal-tab active" onclick="setPortal('tenant', this)">🏛 Tenant Portal <span style="font-size:9px;background:rgba(26,86,219,0.4);padding:1px 5px;border-radius:3px;margin-left:2px;">MVP</span></div>
+    <div class="portal-tab v2" title="V2 — not in MVP scope">🛡 Admin Portal <span class="v2-badge">V2</span></div>
+  </div>
+
+  <div class="screen-nav">
+    <span class="screen-nav-label">Screen</span>
+    <div class="screen-select-wrap">
+      <select id="screen-select" onchange="showScreen(this.value)">
+        <optgroup label="─── Tenant Admin ───">
+          <option value="ta-dash">TA-01 · Dashboard</option>
+          <option value="ta-users">TA-02 · User Management</option>
+          <option value="ta-wizard">TA-08 · Onboarding Wizard</option>
+          <option value="ta-courts">TA-05 · Courts Configuration</option>
+          <option value="ta-backup">TA-06 · Backup & Restore</option>
+          <option value="ta-audit">TA-07 · Audit Logs</option>
+        </optgroup>
+        <optgroup label="─── Customer Management ───">
+          <option value="cm-list">CM-01 · Customer List</option>
+          <option value="cm-profile">CM-02 · Customer Profile + Docs</option>
+        </optgroup>
+        <optgroup label="─── Case Management ───">
+          <option value="case-kanban">CASE-01 · Case Kanban</option>
+          <option value="case-detail">CASE-02 · Case Detail</option>
+          <option value="case-cal">CASE-05 · Case Calendar</option>
+        </optgroup>
+        <optgroup label="─── Document Management ───">
+          <option value="doc-lib">DOC-01 · Document Library</option>
+          <option value="doc-upload">DOC-03 · Upload Document</option>
+        </optgroup>
+      </select>
+      <span class="screen-select-arrow">▾</span>
+    </div>
+  </div>
+
+  <div class="zoom-group">
+    <button class="zoom-btn" onclick="zoom(-0.1)">−</button>
+    <span class="zoom-pct" id="zoom-pct">65%</span>
+    <button class="zoom-btn" onclick="zoom(0.1)">+</button>
+  </div>
+</div>
+
+<!-- ═══ CANVAS ════════════════════════════════════════════════════════ -->
+<div id="canvas">
+  <div id="canvas-scale">
+
+    <!-- ═══════════════════════════════════════════════════════════
+         TENANT PORTAL — SHARED TOPBAR (injected per screen via clone)
+    ══════════════════════════════════════════════════════════════ -->
+
+    <!-- ─────────────────────────── TA-01 DASHBOARD ─────────────── -->
+    <div class="screen active" id="s-ta-dash">
+      <div class="screen-meta"><span class="sid">TA-01</span><span class="sname">Tenant Admin · Dashboard</span><span class="sdomain">almansour.legalsaas.com</span></div>
+      <!-- topbar -->
+      <div class="t-topbar">
+        <div class="t-logo">⚖ Legal<em>SaaS</em></div>
+        <div class="t-tenant-name">Al-Mansour Law Firm</div>
+        <div class="t-topbar-nav">
+          <div class="t-nav-item active">Dashboard</div>
+          <div class="t-nav-item">Customers</div>
+          <div class="t-nav-item">Cases</div>
+          <div class="t-nav-item">Documents</div>
+          <div class="t-nav-item">Calendar</div>
+        </div>
+        <div class="t-topbar-right">
+          <span class="t-role-badge" style="background:rgba(26,86,219,0.2);color:#93C5FD;">Admin</span>
+          <div class="t-notif">🔔</div>
+          <div class="t-avatar" style="background:var(--t-blue);">AA</div>
+        </div>
+      </div>
+      <div class="t-shell">
+        <div class="t-sidebar">
+          <div class="t-sb-section">
+            <div class="t-sb-label">Overview</div>
+            <div class="t-sb-item active"><span class="t-sb-icon">▦</span>Dashboard</div>
+          </div>
+          <div class="t-sb-section">
+            <div class="t-sb-label">Administration</div>
+            <div class="t-sb-item"><span class="t-sb-icon">👥</span>Users<span class="t-sb-count">6</span></div>
+            <div class="t-sb-item"><span class="t-sb-icon">💺</span>Seats</div>
+            <div class="t-sb-item"><span class="t-sb-icon">🔐</span>Roles</div>
+          </div>
+          <div class="t-sb-section">
+            <div class="t-sb-label">Configuration</div>
+            <div class="t-sb-item"><span class="t-sb-icon">🏛</span>Courts</div>
+            <div class="t-sb-item"><span class="t-sb-icon">💾</span>Backup</div>
+            <div class="t-sb-item"><span class="t-sb-icon">📋</span>Audit Logs</div>
+          </div>
+          <div class="t-sb-divider"></div>
+          <div class="t-sb-section">
+            <div class="t-sb-label">Workspace</div>
+            <div class="t-sb-item"><span class="t-sb-icon">👤</span>Customers<span class="t-sb-count">127</span></div>
+            <div class="t-sb-item"><span class="t-sb-icon">⚖</span>Cases<span class="t-sb-count">34</span></div>
+            <div class="t-sb-item"><span class="t-sb-icon">📁</span>Documents</div>
+          </div>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:20px;background:var(--t-surface);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div><div style="font-family:var(--ff-display);font-size:18px;color:var(--t-ink);">Good morning, Ahmed</div><div style="font-size:11px;color:var(--t-muted);margin-top:2px;">Al-Mansour Law Firm · Starter Plan · Monday, 18 Feb 2026</div></div>
+            <button class="btn btn-primary">+ Invite User</button>
+          </div>
+          <!-- Stats -->
+          <div class="stat-grid" style="margin-bottom:14px;">
+            <div class="stat-card"><div class="stat-label">Seats Used</div><div class="stat-value">6<span style="font-size:14px;color:var(--t-muted);font-family:var(--ff-body);">/8</span></div><div class="stat-sub">2 seats available</div></div>
+            <div class="stat-card"><div class="stat-label">Active Cases</div><div class="stat-value" style="color:var(--t-blue);">34</div><div class="stat-sub"><span class="stat-delta-up">↑3</span> this week</div></div>
+            <div class="stat-card"><div class="stat-label">Clients</div><div class="stat-value" style="color:var(--t-teal);">127</div><div class="stat-sub"><span class="stat-delta-up">↑12</span> this month</div></div>
+            <div class="stat-card"><div class="stat-label">Documents</div><div class="stat-value" style="color:var(--t-purple);">1,204</div><div class="stat-sub">14.2 GB of 20 GB</div></div>
+          </div>
+          <div class="grid-2">
+            <!-- Seat allocation -->
+            <div class="body-section">
+              <div class="body-section-header"><span class="body-section-title">Seat Allocation</span><button class="btn btn-ghost btn-xs">Manage →</button></div>
+              <div class="body-section-body">
+                <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
+                  <div class="donut" style="background:conic-gradient(var(--t-blue) 0% 75%,var(--t-border) 75% 100%);">
+                    <div class="donut-inner"><div class="donut-val">6/8</div><div class="donut-lbl">seats</div></div>
+                  </div>
+                  <div>
+                    <div style="font-size:13px;font-weight:600;color:var(--t-ink);margin-bottom:4px;">6 of 8 seats in use</div>
+                    <div class="prog-wrap" style="width:140px;margin-bottom:4px;"><div class="prog-bar" style="width:75%;background:var(--t-blue);"></div></div>
+                    <div style="font-size:10px;color:var(--t-muted);">2 available · <span style="color:var(--t-blue);cursor:pointer;">Upgrade plan</span></div>
+                  </div>
+                </div>
+                <table class="t-table">
+                  <tr><td><div class="av-group"><div class="mini-av" style="background:var(--t-blue);">MR</div><span class="cell-primary">Mohamed Rashid</span></div></td><td><span class="badge badge-gray">Lawyer</span></td><td><span class="badge badge-green">Active</span></td></tr>
+                  <tr><td><div class="av-group"><div class="mini-av" style="background:var(--t-teal);">LA</div><span class="cell-primary">Layla Ahmed</span></div></td><td><span class="badge badge-blue">Sr. Lawyer</span></td><td><span class="badge badge-green">Active</span></td></tr>
+                  <tr><td><div class="av-group"><div class="mini-av" style="background:var(--t-purple);">KO</div><span class="cell-primary">Karim Omar</span></div></td><td><span class="badge badge-gray">Lawyer</span></td><td><span class="badge badge-amber">Away</span></td></tr>
+                </table>
+              </div>
+            </div>
+            <!-- Recent activity -->
+            <div class="body-section">
+              <div class="body-section-header"><span class="body-section-title">Recent Activity</span><button class="btn btn-ghost btn-xs">View Audit Log →</button></div>
+              <div class="body-section-body" style="padding:10px 14px;">
+                <div class="act-item"><div class="mini-av" style="background:var(--t-blue);flex-shrink:0;">MR</div><div><div class="act-text"><b>Mohamed Rashid</b> created case <b>Al-Farsi v. Ministry</b></div><div class="act-time">2 min ago</div></div></div>
+                <div class="act-item"><div class="mini-av" style="background:var(--t-teal);flex-shrink:0;">LA</div><div><div class="act-text"><b>Layla Ahmed</b> uploaded <b>Contract_Final_v3.pdf</b> to C-2024-089</div><div class="act-time">18 min ago</div></div></div>
+                <div class="act-item"><div class="mini-av" style="background:var(--t-purple);flex-shrink:0;">KO</div><div><div class="act-text"><b>Karim Omar</b> added client <b>Hana Electronics LLC</b></div><div class="act-time">1 hour ago</div></div></div>
+                <div class="act-item"><div class="mini-av" style="background:#6B7280;flex-shrink:0;">AA</div><div><div class="act-text"><b>You</b> configured court <b>Cairo Economic Court</b></div><div class="act-time">3 hours ago</div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────── TA-02 USER MANAGEMENT ─────────── -->
+    <div class="screen" id="s-ta-users">
+      <div class="screen-meta"><span class="sid">TA-02</span><span class="sname">Tenant Admin · User Management</span><span class="sdomain">almansour.legalsaas.com</span></div>
+      <div class="t-topbar"><div class="t-logo">⚖ Legal<em>SaaS</em></div><div class="t-tenant-name">Al-Mansour Law Firm</div><div class="t-topbar-nav"><div class="t-nav-item active">Dashboard</div><div class="t-nav-item">Customers</div><div class="t-nav-item">Cases</div><div class="t-nav-item">Documents</div></div><div class="t-topbar-right"><span class="t-role-badge" style="background:rgba(26,86,219,0.2);color:#93C5FD;">Admin</span><div class="t-avatar" style="background:var(--t-blue);">AA</div></div></div>
+      <div class="t-shell">
+        <div class="t-sidebar">
+          <div class="t-sb-section"><div class="t-sb-label">Administration</div>
+            <div class="t-sb-item"><span class="t-sb-icon">▦</span>Dashboard</div>
+            <div class="t-sb-item active"><span class="t-sb-icon">👥</span>Users<span class="t-sb-count">6</span></div>
+            <div class="t-sb-item"><span class="t-sb-icon">💺</span>Seats</div>
+            <div class="t-sb-item"><span class="t-sb-icon">🔐</span>Roles</div>
+            <div class="t-sb-item"><span class="t-sb-icon">🏛</span>Courts</div>
+            <div class="t-sb-item"><span class="t-sb-icon">💾</span>Backup</div>
+            <div class="t-sb-item"><span class="t-sb-icon">📋</span>Audit Logs</div>
+          </div>
+        </div>
+        <!-- Master list -->
+        <div class="t-master">
+          <div class="t-master-header">
+            <div class="t-master-title">Users — 6 / 8 seats</div>
+            <input class="t-search-input" placeholder="Search users…" />
+          </div>
+          <div class="t-master-list">
+            <div class="t-list-item selected">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;"><div class="mini-av" style="background:var(--t-blue);">MR</div><div class="item-title">Mohamed Rashid</div><span class="badge badge-gray" style="margin-left:auto;font-size:9px;">Lawyer</span></div>
+              <div class="item-sub" style="padding-left:34px;">m.rashid@almansour.com</div>
+              <div class="item-meta" style="padding-left:34px;margin-top:4px;"><span class="badge badge-green">Active</span><span style="font-size:10px;color:var(--t-muted);font-family:var(--ff-mono);">5 min ago</span></div>
+            </div>
+            <div class="t-list-item">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;"><div class="mini-av" style="background:var(--t-teal);">LA</div><div class="item-title">Layla Ahmed</div><span class="badge badge-blue" style="margin-left:auto;font-size:9px;">Sr. Lawyer</span></div>
+              <div class="item-sub" style="padding-left:34px;">l.ahmed@almansour.com</div>
+              <div class="item-meta" style="padding-left:34px;margin-top:4px;"><span class="badge badge-green">Active</span><span style="font-size:10px;color:var(--t-muted);font-family:var(--ff-mono);">1 hr ago</span></div>
+            </div>
+            <div class="t-list-item">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;"><div class="mini-av" style="background:var(--t-purple);">KO</div><div class="item-title">Karim Omar</div><span class="badge badge-gray" style="margin-left:auto;font-size:9px;">Lawyer</span></div>
+              <div class="item-sub" style="padding-left:34px;">k.omar@almansour.com</div>
+              <div class="item-meta" style="padding-left:34px;margin-top:4px;"><span class="badge badge-amber">Away</span><span style="font-size:10px;color:var(--t-muted);font-family:var(--ff-mono);">2 days ago</span></div>
+            </div>
+            <div class="t-list-item">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;"><div class="mini-av" style="background:#B45309;">NS</div><div class="item-title">Nadia Saber</div><span class="badge badge-gray" style="margin-left:auto;font-size:9px;">Lawyer</span></div>
+              <div class="item-sub" style="padding-left:34px;">n.saber@almansour.com</div>
+              <div class="item-meta" style="padding-left:34px;margin-top:4px;"><span class="badge badge-red">Inactive</span><span style="font-size:10px;color:var(--t-muted);font-family:var(--ff-mono);">14 days ago</span></div>
+            </div>
+          </div>
+          <div style="padding:12px;border-top:1px solid var(--t-border);"><button class="btn btn-primary" style="width:100%;justify-content:center;">+ Invite New User</button></div>
+        </div>
+        <!-- Detail: user form -->
+        <div class="t-detail">
+          <div class="t-detail-topbar">
+            <div class="t-breadcrumb">Users <span style="opacity:0.4;">›</span> <span>Mohamed Rashid</span></div>
+            <div class="t-detail-actions"><button class="btn btn-danger btn-sm">Revoke Access</button><button class="btn btn-primary btn-sm">Save Changes</button></div>
+          </div>
+          <div class="t-detail-hero">
+            <div class="t-entity-header">
+              <div class="t-entity-icon" style="background:var(--t-blue);">MR</div>
+              <div>
+                <div class="t-entity-name">Mohamed Rashid</div>
+                <div class="t-entity-meta"><span>m.rashid@almansourlaw.com</span><span>+20 100 111 2233</span></div>
+                <div class="t-badges"><span class="badge badge-gray">Lawyer</span><span class="badge badge-green">● Active</span><span class="badge badge-blue">Seat Assigned</span></div>
+              </div>
+            </div>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:20px 24px;background:var(--t-surface);">
+            <div class="body-section" style="margin-bottom:14px;">
+              <div class="body-section-header"><span class="body-section-title">Account Details</span></div>
+              <div class="body-section-body">
+                <div class="f-row f-row-2">
+                  <div class="f-group"><label class="f-label">Full Name</label><input class="f-input" value="Mohamed Rashid" /></div>
+                  <div class="f-group"><label class="f-label">Email</label><input class="f-input" value="m.rashid@almansourlaw.com" /></div>
+                  <div class="f-group"><label class="f-label">Role</label><select class="f-select"><option>Lawyer</option><option>Sr. Lawyer</option><option>Tenant Admin</option></select></div>
+                  <div class="f-group"><label class="f-label">Status</label><select class="f-select"><option>Active</option><option>Inactive</option><option>Suspended</option></select></div>
+                </div>
+              </div>
+            </div>
+            <div class="body-section">
+              <div class="body-section-header"><span class="body-section-title">Permission Overrides</span><span class="badge badge-amber" style="font-size:9px;">Advanced</span></div>
+              <div class="body-section-body">
+                <div style="font-size:11px;color:var(--t-muted);margin-bottom:10px;">Overrides apply on top of the role's default permissions. Use sparingly.</div>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                  <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t-ink-2);cursor:pointer;"><input type="checkbox" checked /> Can delete case documents</label>
+                  <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t-ink-2);cursor:pointer;"><input type="checkbox" /> Can view all cases (not just assigned)</label>
+                  <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t-ink-2);cursor:pointer;"><input type="checkbox" /> Can export customer data</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────── TA-08 ONBOARDING WIZARD ────────── -->
+    <div class="screen" id="s-ta-wizard">
+      <div class="screen-meta"><span class="sid">TA-08</span><span class="sname">Tenant Admin · Onboarding Wizard</span><span class="sdomain">almansour.legalsaas.com</span></div>
+      <div class="t-topbar"><div class="t-logo">⚖ Legal<em>SaaS</em></div><div class="t-tenant-name">Al-Mansour Law Firm</div><div class="t-topbar-right"><div class="t-avatar" style="background:var(--t-blue);">AA</div></div></div>
+      <div style="flex:1;overflow-y:auto;background:var(--t-surface);padding:40px;">
+        <div style="max-width:700px;margin:0 auto;">
+          <div style="font-family:var(--ff-display);font-size:24px;color:var(--t-ink);margin-bottom:4px;">Welcome to LegalSaaS ⚖</div>
+          <div style="font-size:12px;color:var(--t-muted);margin-bottom:28px;">Complete the setup to activate your firm's workspace. This takes about 5 minutes.</div>
+          <!-- Wizard stepper -->
+          <div style="display:flex;align-items:center;margin-bottom:28px;">
+            <div class="wizard-step"><div class="wizard-circle wz-done">✓</div><div class="wizard-label">Firm Profile</div></div>
+            <div class="wizard-line done"></div>
+            <div class="wizard-step"><div class="wizard-circle wz-active">2</div><div class="wizard-label">Invite Users</div></div>
+            <div class="wizard-line"></div>
+            <div class="wizard-step"><div class="wizard-circle wz-todo">3</div><div class="wizard-label">Configure Courts</div></div>
+            <div class="wizard-line"></div>
+            <div class="wizard-step"><div class="wizard-circle wz-todo">4</div><div class="wizard-label">Done</div></div>
+          </div>
+          <!-- Step content -->
+          <div class="card" style="padding:24px;">
+            <div style="font-size:14px;font-weight:700;color:var(--t-ink);margin-bottom:3px;">Step 2 — Invite your team</div>
+            <div style="font-size:12px;color:var(--t-muted);margin-bottom:20px;">Invite lawyers to your firm. You can skip and do this later. <strong style="color:var(--t-ink-2);">7 seats remaining</strong> on your Starter plan.</div>
+            <div style="border:1px solid var(--t-border);border-radius:5px;overflow:hidden;margin-bottom:14px;">
+              <div style="display:grid;grid-template-columns:1fr 1fr 160px 32px;gap:0;background:var(--t-surface);padding:8px 10px;font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--t-muted);border-bottom:1px solid var(--t-border);">
+                <div>Email</div><div>Full Name</div><div>Role</div><div></div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 160px 32px;gap:0;padding:8px 10px;border-bottom:1px solid var(--t-border-2);align-items:center;">
+                <input class="f-input" style="border-radius:3px;font-size:12px;" value="m.rashid@almansourlaw.com" />
+                <input class="f-input" style="border-radius:3px;font-size:12px;margin-left:8px;" value="Mohamed Rashid" />
+                <select class="f-select" style="border-radius:3px;font-size:12px;margin-left:8px;"><option>Lawyer</option></select>
+                <button class="btn btn-ghost btn-xs" style="margin-left:4px;color:var(--t-red);">✗</button>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 160px 32px;gap:0;padding:8px 10px;align-items:center;">
+                <input class="f-input" style="border-radius:3px;font-size:12px;" placeholder="email@firm.com" />
+                <input class="f-input" style="border-radius:3px;font-size:12px;margin-left:8px;" placeholder="Full Name" />
+                <select class="f-select" style="border-radius:3px;font-size:12px;margin-left:8px;"><option>Lawyer</option><option>Sr. Lawyer</option></select>
+                <button class="btn btn-ghost btn-xs" style="margin-left:4px;color:var(--t-muted);">+</button>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;"><button class="btn btn-ghost btn-sm">Skip for now</button><div style="display:flex;gap:8px;"><button class="btn btn-secondary">← Back</button><button class="btn btn-primary">Continue to Courts →</button></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────── TA-05 COURTS ────────────────── -->
+    <div class="screen" id="s-ta-courts">
+      <div class="screen-meta"><span class="sid">TA-05</span><span class="sname">Tenant Admin · Courts Configuration</span><span class="sdomain">almansour.legalsaas.com</span></div>
+      <div class="t-topbar"><div class="t-logo">⚖ Legal<em>SaaS</em></div><div class="t-tenant-name">Al-Mansour Law Firm</div><div class="t-topbar-nav"><div class="t-nav-item active">Dashboard</div></div><div class="t-topbar-right"><span class="t-role-badge" style="background:rgba(26,86,219,0.2);color:#93C5FD;">Admin</span><div class="t-avatar" style="background:var(--t-blue);">AA</div></div></div>
+      <div class="t-shell">
+        <div class="t-sidebar">
+          <div class="t-sb-section"><div class="t-sb-label">Administration</div>
+            <div class="t-sb-item"><span class="t-sb-icon">👥</span>Users</div>
+            <div class="t-sb-item"><span class="t-sb-icon">💺</span>Seats</div>
+          </div>
+          <div class="t-sb-section"><div class="t-sb-label">Configuration</div>
+            <div class="t-sb-item active"><span class="t-sb-icon">🏛</span>Courts</div>
+            <div class="t-sb-item"><span class="t-sb-icon">💾</span>Backup</div>
+            <div class="t-sb-item"><span class="t-sb-icon">📋</span>Audit Logs</div>
+          </div>
+        </div>
+        <div class="t-master">
+          <div class="t-master-header">
+            <div class="t-master-title">Courts — 8 configured</div>
+            <input class="t-search-input" placeholder="Search courts…" />
+          </div>
+          <div class="t-master-list">
+            <div class="t-list-item selected"><div class="item-title">Cairo Economic Court</div><div class="item-sub">Commercial · Cairo, Egypt</div><div class="item-meta"><span class="badge badge-green">Active</span></div></div>
+            <div class="t-list-item"><div class="item-title">Cairo Court of Appeals</div><div class="item-sub">Civil & Commercial · Cairo, Egypt</div><div class="item-meta"><span class="badge badge-green">Active</span></div></div>
+            <div class="t-list-item"><div class="item-title">Administrative Court</div><div class="item-sub">Administrative · Cairo, Egypt</div><div class="item-meta"><span class="badge badge-green">Active</span></div></div>
+            <div class="t-list-item"><div class="item-title">Labour Court — Cairo</div><div class="item-sub">Employment · Cairo, Egypt</div><div class="item-meta"><span class="badge badge-green">Active</span></div></div>
+            <div class="t-list-item"><div class="item-title">Personal Status Court</div><div class="item-sub">Family · Cairo, Egypt</div><div class="item-meta"><span class="badge badge-amber">Inactive</span></div></div>
+          </div>
+          <div style="padding:12px;border-top:1px solid var(--t-border);"><button class="btn btn-primary" style="width:100%;justify-content:center;">+ Add Court</button></div>
+        </div>
+        <div class="t-detail">
+          <div class="t-detail-topbar"><div class="t-breadcrumb">Courts <span style="opacity:0.4;">›</span><span>Cairo Economic Court</span></div><div class="t-detail-actions"><button class="btn btn-danger btn-sm">Deactivate</button><button class="btn btn-primary btn-sm">Save</button></div></div>
+          <div style="flex:1;overflow-y:auto;padding:20px 24px;background:var(--t-surface);">
+            <div class="body-section">
+              <div class="body-section-header"><span class="body-section-title">Court Details</span></div>
+              <div class="body-section-body">
+                <div class="f-row f-row-2">
+                  <div class="f-group"><label class="f-label">Court Name *</label><input class="f-input" value="Cairo Economic Court" /></div>
+                  <div class="f-group"><label class="f-label">Jurisdiction Type</label><select class="f-select"><option>Commercial</option><option>Civil</option><option>Administrative</option><option>Employment</option><option>Family</option><option>Criminal</option></select></div>
+                  <div class="f-group"><label class="f-label">City</label><input class="f-input" value="Cairo" /></div>
+                  <div class="f-group"><label class="f-label">Country</label><select class="f-select"><option>Egypt</option><option>UAE</option><option>Saudi Arabia</option></select></div>
+                  <div class="f-group" style="grid-column:1/-1;"><label class="f-label">Address / Notes</label><input class="f-input" value="North Cairo, Heliopolis District, Court Complex Bldg A" /></div>
+                  <div class="f-group"><label class="f-label">Status</label><select class="f-select"><option>Active</option><option>Inactive</option></select></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────── TA-07 AUDIT LOGS ─────────────── -->
+    <div class="screen" id="s-ta-audit">
+      <div class="screen-meta"><span class="sid">TA-07</span><span class="sname">Tenant Admin · Audit Logs</span><span class="sdomain">almansour.legalsaas.com</span></div>
+      <div class="t-topbar"><div class="t-logo">⚖ Legal<em>SaaS</em></div><div class="t-tenant-name">Al-Mansour Law Firm</div><div class="t-topbar-right"><span class="t-role-badge" style="background:rgba(26,86,219,0.2);color:#93C5FD;">Admin</span><div class="t-avatar" style="background:var(--t-blue);">AA</div></div></div>
+      <div class="t-shell">
+        <div class="t-sidebar"><div class="t-sb-section"><div class="t-sb-label">Configuration</div><div class="t-sb-item"><span class="t-sb-icon">🏛</span>Courts</div><div class="t-sb-item"><span class="t-sb-icon">💾</span>Backup</div><div class="t-sb-item active"><span class="t-sb-icon">📋</span>Audit Logs</div></div></div>
+        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--t-surface);">
+          <div style="padding:16px 20px;background:var(--t-white);border-bottom:1px solid var(--t-border);display:flex;align-items:center;gap:10px;">
+            <div style="font-family:var(--ff-display);font-size:18px;color:var(--t-ink);">Audit Logs</div>
+            <div style="flex:1;display:flex;gap:8px;margin-left:16px;">
+              <input class="f-input" style="max-width:240px;font-size:12px;" placeholder="Search actions…" />
+              <select class="f-select" style="width:140px;font-size:12px;"><option>All Users</option></select>
+              <select class="f-select" style="width:140px;font-size:12px;"><option>All Actions</option><option>Create</option><option>Update</option><option>Delete</option><option>View</option></select>
+              <input type="date" class="f-input" style="width:140px;font-size:12px;" value="2026-02-18" />
+            </div>
+            <button class="btn btn-secondary btn-sm">↓ Export CSV</button>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:16px 20px;">
+            <div class="card" style="padding:0;overflow:hidden;">
+              <table class="t-table">
+                <thead><tr><th>Timestamp</th><th>Actor</th><th>Action</th><th>Resource</th><th>Resource ID</th><th>IP</th></tr></thead>
+                <tbody>
+                  <tr><td class="cell-mono">2026-02-18 09:14:02</td><td><div class="av-group"><div class="mini-av" style="background:var(--t-blue);font-size:9px;">MR</div>Mohamed Rashid</div></td><td><span class="badge badge-blue">CREATE</span></td><td>Case</td><td class="cell-mono">#C-2026-041</td><td class="cell-mono" style="color:var(--t-muted);">102.33.1.88</td></tr>
+                  <tr><td class="cell-mono">2026-02-18 08:57:44</td><td><div class="av-group"><div class="mini-av" style="background:var(--t-teal);font-size:9px;">LA</div>Layla Ahmed</div></td><td><span class="badge badge-teal">UPLOAD</span></td><td>Document</td><td class="cell-mono">doc_f3a2b1c0</td><td class="cell-mono" style="color:var(--t-muted);">196.45.22.4</td></tr>
+                  <tr><td class="cell-mono">2026-02-18 08:22:11</td><td><div class="av-group"><div class="mini-av" style="background:var(--t-purple);font-size:9px;">KO</div>Karim Omar</div></td><td><span class="badge badge-green">UPDATE</span></td><td>Customer</td><td class="cell-mono">cust_hana_001</td><td class="cell-mono" style="color:var(--t-muted);">41.65.180.9</td></tr>
+                  <tr><td class="cell-mono">2026-02-18 07:45:00</td><td><div class="av-group"><div class="mini-av" style="background:#6B7280;font-size:9px;">AA</div>Ahmed Al-Rashid</div></td><td><span class="badge badge-amber">CONFIG</span></td><td>Court</td><td class="cell-mono">court_cairo_ec</td><td class="cell-mono" style="color:var(--t-muted);">102.33.1.88</td></tr>
+                  <tr><td class="cell-mono">2026-02-17 18:30:55</td><td><div class="av-group"><div class="mini-av" style="background:#6B7280;font-size:9px;">AA</div>Ahmed Al-Rashid</div></td><td><span class="badge badge-red">DELETE</span></td><td>Document</td><td class="cell-mono">doc_old_draft</td><td class="cell-mono" style="color:var(--t-muted);">102.33.1.88</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────── CM-01 CUSTOMER LIST ─────────── -->
+    <div class="screen" id="s-cm-list">
+      <div class="screen-meta"><span class="sid">CM-01</span><span class="sname">Lawyer · Customer List</span><span class="sdomain">almansour.legalsaas.com</span></div>
+      <div class="t-topbar"><div class="t-logo">⚖ Legal<em>SaaS</em></div><div class="t-tenant-name">Al-Mansour Law Firm</div><div class="t-topbar-nav"><div class="t-nav-item">Dashboard</div><div class="t-nav-item active">Customers</div><div class="t-nav-item">Cases</div><div class="t-nav-item">Documents</div><div class="t-nav-item">Calendar</div></div><div class="t-topbar-right"><span class="t-role-badge" style="background:rgba(14,116,144,0.25);color:#67E8F9;">Lawyer</span><div class="t-avatar" style="background:var(--t-teal);">MR</div></div></div>
+      <div class="t-shell">
+        <div class="t-sidebar">
+          <div class="t-sb-section"><div class="t-sb-label">Workspace</div>
+            <div class="t-sb-item"><span class="t-sb-icon">▦</span>My Dashboard</div>
+            <div class="t-sb-item active"><span class="t-sb-icon">👤</span>Customers<span class="t-sb-count">127</span></div>
+            <div class="t-sb-item"><span class="t-sb-icon">⚖</span>Cases<span class="t-sb-count">34</span></div>
+            <div class="t-sb-item"><span class="t-sb-icon">📁</span>Documents</div>
+            <div class="t-sb-item"><span class="t-sb-icon">📅</span>Calendar</div>
+          </div>
+          <div class="t-sb-section"><div class="t-sb-label">Quick Filters</div>
+            <div class="t-sb-item"><span class="t-sb-icon">👤</span>My Clients<span class="t-sb-count">21</span></div>
+            <div class="t-sb-item"><span class="t-sb-icon">🏢</span>Companies<span class="t-sb-count">58</span></div>
+            <div class="t-sb-item"><span class="t-sb-icon">🔴</span>Prospects<span class="t-sb-count">14</span></div>
+          </div>
+        </div>
+        <div class="t-master">
+          <div class="t-master-header">
+            <div class="t-master-title">All Customers — 127</div>
+            <input class="t-search-input" placeholder="Search name, email, company…" />
+          </div>
+          <div class="t-master-list">
+            <div class="t-list-item selected">
+              <div class="item-title">Hana Electronics LLC</div>
+              <div class="item-sub">info@hanaelectronics.com · 🏢 Company</div>
+              <div class="item-meta"><div class="item-badges"><span class="badge badge-blue">3 cases</span><span class="badge badge-green">Active</span></div><span style="font-size:10px;color:var(--t-muted);">M. Rashid</span></div>
+            </div>
+            <div class="t-list-item">
+              <div class="item-title">Yusuf Al-Amir</div>
+              <div class="item-sub">y.alamir@gmail.com · 👤 Individual</div>
+              <div class="item-meta"><div class="item-badges"><span class="badge badge-blue">1 case</span><span class="badge badge-green">Active</span></div><span style="font-size:10px;color:var(--t-muted);">L. Ahmed</span></div>
+            </div>
+            <div class="t-list-item">
+              <div class="item-title">Nile River Trading Co.</div>
+              <div class="item-sub">legal@niletrading.com · 🏢 Company</div>
+              <div class="item-meta"><div class="item-badges"><span class="badge badge-blue">5 cases</span><span class="badge badge-amber">Prospect</span></div><span style="font-size:10px;color:var(--t-muted);">K. Omar</span></div>
+            </div>
+            <div class="t-list-item">
+              <div class="item-title">Fatima Ibrahim</div>
+              <div class="item-sub">f.ibrahim@outlook.com · 👤 Individual</div>
+              <div class="item-meta"><div class="item-badges"><span class="badge badge-blue">2 cases</span><span class="badge badge-red">Closed</span></div><span style="font-size:10px;color:var(--t-muted);">M. Rashid</span></div>
+            </div>
+            <div class="t-list-item">
+              <div class="item-title">Al-Baraka Holdings</div>
+              <div class="item-sub">ceo@albarakagroup.com · 🏢 Company</div>
+              <div class="item-meta"><div class="item-badges"><span class="badge badge-blue">7 cases</span><span class="badge badge-green">Active</span></div><span style="font-size:10px;color:var(--t-muted);">L. Ahmed</span></div>
+            </div>
+          </div>
+          <div style="padding:12px;border-top:1px solid var(--t-border);"><button class="btn btn-primary" style="width:100%;justify-content:center;">+ New Customer</button></div>
+        </div>
+        <!-- Detail: customer profile -->
+        <div class="t-detail">
+          <div class="t-detail-topbar"><div class="t-breadcrumb">Customers <span style="opacity:0.4;">›</span><span>Hana Electronics LLC</span></div><div class="t-detail-actions"><button class="btn btn-secondary btn-sm">Edit</button><button class="btn btn-primary btn-sm">+ New Case</button></div></div>
+          <div class="t-detail-hero">
+            <div class="t-entity-header">
+              <div class="t-entity-icon" style="background:var(--t-ink);">HE</div>
+              <div>
+                <div class="t-entity-name">Hana Electronics LLC</div>
+                <div class="t-entity-meta"><span>info@hanaelectronics.com</span><span>+20 2 1234 5678</span><span>Cairo, Egypt</span></div>
+                <div class="t-badges"><span class="badge badge-blue">🏢 Company</span><span class="badge badge-green">Active</span><span class="badge badge-gray">EG-CR-2015-0042</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="t-tabs">
+            <div class="t-tab active">Overview</div>
+            <div class="t-tab">Documents<span class="tab-count">8</span></div>
+            <div class="t-tab">Cases<span class="tab-count">3</span></div>
+            <div class="t-tab">Payments</div>
+          </div>
+          <div class="t-detail-body">
+            <div class="grid-2">
+              <div class="body-section"><div class="body-section-header"><span class="body-section-title">Contact Details</span></div><div class="body-section-body">
+                <div class="t-field"><div class="t-field-label">Company Name</div><div class="t-field-value">Hana Electronics LLC</div></div>
+                <div class="t-field"><div class="t-field-label">Registration</div><div class="t-field-value">EG-CR-2015-0042</div></div>
+                <div class="t-field"><div class="t-field-label">Primary Contact</div><div class="t-field-value">Hana Farouk, CEO</div></div>
+                <div class="t-field"><div class="t-field-label">Email</div><div class="t-field-value t-field-link">info@hanaelectronics.com</div></div>
+                <div class="t-field"><div class="t-field-label">Phone</div><div class="t-field-value">+20 2 1234 5678</div></div>
+                <div class="t-field"><div class="t-field-label">Address</div><div class="t-field-value">14 Tahrir Sq, Cairo, Egypt</div></div>
+                <div class="t-field"><div class="t-field-label">Assigned Lawyer</div><div class="t-field-value">Mohamed Rashid</div></div>
+                <div class="t-field"><div class="t-field-label">Status</div><div class="t-field-value"><span class="badge badge-green">Active</span></div></div>
+              </div></div>
+              <div class="body-section"><div class="body-section-header"><span class="body-section-title">Active Cases</span><span class="badge badge-blue" style="font-size:9px;">3</span></div><div class="body-section-body" style="padding:0;">
+                <div class="t-list-item" style="padding:10px 14px;"><div class="item-title" style="font-size:12px;">Hana v. Cairo Customs Authority</div><div class="item-sub">#C-2024-089 · Cairo Economic Court</div><div class="item-meta" style="margin-top:4px;"><span class="badge badge-amber">In Progress</span></div></div>
+                <div class="t-list-item" style="padding:10px 14px;"><div class="item-title" style="font-size:12px;">Trademark Registration — HanaElec™</div><div class="item-sub">#C-2024-112 · IP Office</div><div class="item-meta" style="margin-top:4px;"><span class="badge badge-blue">Filed</span></div></div>
+                <div class="t-list-item" style="padding:10px 14px;border-bottom:none;"><div class="item-title" style="font-size:12px;">Employment Dispute — 3 workers</div><div class="item-sub">#C-2024-134 · Labour Court</div><div class="item-meta" style="margin-top:4px;"><span class="badge badge-gray">Pending</span></div></div>
+              </div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────── CASE-01 KANBAN ─────────────── -->
+    <div class="screen" id="s-case-kanban">
+      <div class="screen-meta"><span class="sid">CASE-01</span><span class="sname">Lawyer · Case Management — Kanban View</span><span class="sdomain">almansour.legalsaas.com</span></div>
+      <div class="t-topbar"><div class="t-logo">⚖ Legal<em>SaaS</em></div><div class="t-tenant-name">Al-Mansour Law Firm</div><div class="t-topbar-nav"><div class="t-nav-item">Dashboard</div><div class="t-nav-item">Customers</div><div class="t-nav-item active">Cases</div><div class="t-nav-item">Documents</div><div class="t-nav-item">Calendar</div></div><div class="t-topbar-right"><span class="t-role-badge" style="background:rgba(14,116,144,0.25);color:#67E8F9;">Lawyer</span><div class="t-avatar" style="background:var(--t-teal);">MR</div></div></div>
+      <div class="t-shell">
+        <div class="t-sidebar">
+          <div class="t-sb-section"><div class="t-sb-label">Cases</div>
+            <div class="t-sb-item active"><span class="t-sb-icon">⚖</span>All Cases<span class="t-sb-count">34</span></div>
+            <div class="t-sb-item"><span class="t-sb-icon">👤</span>My Cases<span class="t-sb-count">12</span></div>
+            <div class="t-sb-item"><span class="t-sb-icon">⏰</span>Due Soon<span class="t-sb-badge">3</span></div>
+          </div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--t-surface);">
+          <div style="padding:12px 18px;background:var(--t-white);border-bottom:1px solid var(--t-border);display:flex;align-items:center;gap:10px;">
+            <div style="font-family:var(--ff-display);font-size:17px;color:var(--t-ink);">Cases</div>
+            <div style="display:flex;gap:2px;background:var(--t-surface);border:1px solid var(--t-border);border-radius:4px;padding:2px;margin-left:8px;">
+              <button class="btn btn-ghost btn-xs" style="font-size:11px;">☰ List</button>
+              <button class="btn btn-primary btn-xs" style="font-size:11px;">⊞ Board</button>
+            </div>
+            <input class="f-input" style="max-width:200px;font-size:12px;" placeholder="Filter cases…" />
+            <select class="f-select" style="width:130px;font-size:12px;"><option>All Courts</option></select>
+            <button class="btn btn-primary btn-sm" style="margin-left:auto;">+ New Case</button>
+          </div>
+          <div style="flex:1;overflow-x:auto;padding:16px 18px;">
+            <div class="kb-board">
+              <div class="kb-col"><div class="kb-col-hd"><span class="kb-col-title">Intake</span><span class="badge badge-gray" style="font-size:9px;">4</span></div><div class="kb-body">
+                <div class="kb-card"><div class="kb-card-title">Al-Farsi v. Ministry of Interior</div><div class="kb-card-meta">👤 Yusuf Al-Amir · 🏛 Admin Court</div><div class="kb-card-foot"><span class="badge badge-gray" style="font-size:9px;">New</span><div class="mini-av" style="width:20px;height:20px;background:var(--t-teal);font-size:8px;">MR</div></div></div>
+                <div class="kb-card"><div class="kb-card-title">Property Dispute — 12 Nile St</div><div class="kb-card-meta">🏢 Nile River Trading · 🏛 Civil Court</div><div class="kb-card-foot"><span class="badge badge-gray" style="font-size:9px;">New</span><div class="mini-av" style="width:20px;height:20px;background:var(--t-purple);font-size:8px;">KO</div></div></div>
+              </div></div>
+              <div class="kb-col"><div class="kb-col-hd"><span class="kb-col-title">In Progress</span><span class="badge badge-blue" style="font-size:9px;">14</span></div><div class="kb-body">
+                <div class="kb-card" style="border-left:3px solid var(--t-blue);"><div class="kb-card-title">Hana v. Cairo Customs Authority</div><div class="kb-card-meta">🏢 Hana Electronics · 🏛 Economic Court</div><div class="kb-card-foot"><span class="badge badge-amber" style="font-size:9px;">Hearing Jan 28</span><div class="mini-av" style="width:20px;height:20px;background:var(--t-teal);font-size:8px;">MR</div></div></div>
+                <div class="kb-card"><div class="kb-card-title">Trademark Registration — HanaElec™</div><div class="kb-card-meta">🏢 Hana Electronics · 🏛 IP Office</div><div class="kb-card-foot"><span>&nbsp;</span><div class="mini-av" style="width:20px;height:20px;background:var(--t-teal);font-size:8px;">MR</div></div></div>
+                <div class="kb-card" style="border-left:3px solid var(--t-red);"><div class="kb-card-title">Employment Dispute — 3 workers</div><div class="kb-card-meta">🏢 Hana Electronics · 🏛 Labour Court</div><div class="kb-card-foot"><span class="badge badge-red" style="font-size:9px;">⚠ Due tomorrow</span><div class="mini-av" style="width:20px;height:20px;background:var(--t-purple);font-size:8px;">KO</div></div></div>
+              </div></div>
+              <div class="kb-col"><div class="kb-col-hd"><span class="kb-col-title">Filed / Awaiting</span><span class="badge badge-amber" style="font-size:9px;">8</span></div><div class="kb-body">
+                <div class="kb-card"><div class="kb-card-title">Commercial Contract Breach</div><div class="kb-card-meta">👤 Fatima Ibrahim · 🏛 Civil Court</div><div class="kb-card-foot"><span>&nbsp;</span><div class="mini-av" style="width:20px;height:20px;background:var(--t-teal);font-size:8px;">LA</div></div></div>
+                <div class="kb-card"><div class="kb-card-title">Inheritance Settlement</div><div class="kb-card-meta">👤 Private · 🏛 Personal Status Court</div></div>
+              </div></div>
+              <div class="kb-col"><div class="kb-col-hd"><span class="kb-col-title">Judgment / Decision</span><span class="badge badge-teal" style="font-size:9px;">5</span></div><div class="kb-body">
+                <div class="kb-card"><div class="kb-card-title">Tax Dispute — FY2022</div><div class="kb-card-meta">🏢 Private Co · 🏛 Tax Court</div></div>
+              </div></div>
+              <div class="kb-col"><div class="kb-col-hd"><span class="kb-col-title">Closed</span><span class="badge badge-gray" style="font-size:9px;">3</span></div><div class="kb-body">
+                <div class="kb-card" style="opacity:0.5;"><div class="kb-card-title">Real Estate Transfer</div><div class="kb-card-meta">👤 Client · ✓ Resolved Dec 2024</div></div>
+              </div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────── CASE-02 DETAIL ─────────────── -->
+    <div class="screen" id="s-case-detail">
+      <div class="screen-meta"><span class="sid">CASE-02</span><span class="sname">Lawyer · Case Detail — Master/Detail</span><span class="sdomain">almansour.legalsaas.com</span></div>
+      <div class="t-topbar"><div class="t-logo">⚖ Legal<em>SaaS</em></div><div class="t-tenant-name">Al-Mansour Law Firm</div><div class="t-topbar-nav"><div class="t-nav-item">Customers</div><div class="t-nav-item active">Cases</div><div class="t-nav-item">Documents</div><div class="t-nav-item">Calendar</div></div><div class="t-topbar-right"><div class="t-avatar" style="background:var(--t-teal);">MR</div></div></div>
+      <div class="t-shell">
+        <!-- Master: case list narrow -->
+        <div class="t-master" style="width:300px;">
+          <div class="t-master-header"><div class="t-master-title">Cases — 34</div><input class="t-search-input" placeholder="Search…" /></div>
+          <div class="t-master-list">
+            <div class="t-list-item selected"><div class="item-title" style="font-size:12px;">Hana v. Cairo Customs</div><div class="item-sub">#C-2024-089</div><div class="item-meta"><span class="badge badge-amber" style="font-size:9px;">In Progress</span><span style="font-size:10px;color:var(--t-muted);">Jan 28</span></div></div>
+            <div class="t-list-item"><div class="item-title" style="font-size:12px;">Trademark — HanaElec™</div><div class="item-sub">#C-2024-112</div><div class="item-meta"><span class="badge badge-blue" style="font-size:9px;">Filed</span></div></div>
+            <div class="t-list-item"><div class="item-title" style="font-size:12px;">Employment Dispute</div><div class="item-sub">#C-2024-134</div><div class="item-meta"><span class="badge badge-red" style="font-size:9px;">⚠ Urgent</span></div></div>
+            <div class="t-list-item"><div class="item-title" style="font-size:12px;">Al-Farsi v. Ministry</div><div class="item-sub">#C-2026-041</div><div class="item-meta"><span class="badge badge-gray" style="font-size:9px;">Intake</span></div></div>
+          </div>
+        </div>
+        <!-- Detail -->
+        <div class="t-detail">
+          <div class="t-detail-topbar"><div class="t-breadcrumb">Cases <span style="opacity:0.4;">›</span><span>#C-2024-089 — Hana v. Cairo Customs</span></div><div class="t-detail-actions"><button class="btn btn-secondary btn-sm">Update Status</button><button class="btn btn-primary btn-sm">+ Upload Doc</button></div></div>
+          <div class="t-detail-hero">
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+              <div>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                  <span class="badge badge-gray" style="font-family:var(--ff-mono);font-size:10px;">#C-2024-089</span>
+                  <div class="t-entity-name" style="font-size:18px;">Hana Electronics LLC v. Cairo Customs Authority</div>
+                  <span class="badge badge-amber">In Progress</span>
+                </div>
+                <div class="t-entity-meta">
+                  <span>🏛 Cairo Economic Court</span>
+                  <span>👤 Hana Electronics LLC</span>
+                  <span>⚖ M. Rashid</span>
+                  <span>📅 Opened Dec 1, 2024</span>
+                  <span>📋 Hearing: Jan 28, 2026</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="t-tabs">
+            <div class="t-tab active">Overview</div>
+            <div class="t-tab">Documents<span class="tab-count">12</span></div>
+            <div class="t-tab">Calendar<span class="tab-count">3</span></div>
+            <div class="t-tab">Expenses</div>
+            <div class="t-tab">Status History</div>
+          </div>
+          <div class="t-detail-body">
+            <div class="grid-2">
+              <div>
+                <div class="body-section" style="margin-bottom:12px;">
+                  <div class="body-section-header"><span class="body-section-title">Case Summary</span></div>
+                  <div class="body-section-body"><div style="font-size:12.5px;color:var(--t-ink-3);line-height:1.6;">Customs dispute arising from seizure of Hana Electronics' imported goods (Shipment #SH-2024-0891) at Cairo Port, Nov 2024. Client seeks release of goods and waiver of penalty fees of EGP 420,000.</div></div>
+                </div>
+                <div class="body-section">
+                  <div class="body-section-header"><span class="body-section-title">Documents</span><button class="btn btn-ghost btn-xs">View All →</button></div>
+                  <div class="body-section-body" style="padding:0 14px;">
+                    <div class="doc-row"><span class="doc-icon">📄</span><div><div class="doc-name">Customs_Seizure_Notice.pdf</div><div class="doc-meta">Evidence · 1.2 MB · 2 days ago</div></div><div class="doc-actions"><button class="btn btn-ghost btn-xs">↓</button></div></div>
+                    <div class="doc-row"><span class="doc-icon">📄</span><div><div class="doc-name">Hana_Import_License.pdf</div><div class="doc-meta">Contract · 890 KB · 5 days ago</div></div><div class="doc-actions"><button class="btn btn-ghost btn-xs">↓</button></div></div>
+                    <div class="doc-row" style="border:none;"><span class="doc-icon">📄</span><div><div class="doc-name">Expert_Witness_Report.pdf</div><div class="doc-meta">Evidence · 2.4 MB · Yesterday</div></div><div class="doc-actions"><button class="btn btn-ghost btn-xs">↓</button></div></div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div class="body-section" style="margin-bottom:12px;">
+                  <div class="body-section-header"><span class="body-section-title">Upcoming</span><button class="btn btn-ghost btn-xs">+ Add</button></div>
+                  <div class="body-section-body" style="padding:0 14px;">
+                    <div style="display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--t-border-2);">
+                      <div style="background:var(--t-amber-bg);color:var(--t-amber);border-radius:4px;padding:6px 8px;text-align:center;min-width:38px;"><div style="font-size:8px;font-weight:700;">JAN</div><div style="font-size:16px;font-weight:700;line-height:1;">28</div></div>
+                      <div><div style="font-size:12px;font-weight:600;color:var(--t-ink-2);">Preliminary Hearing</div><div style="font-size:10px;color:var(--t-muted);">10:00 AM · Cairo Economic Court</div></div>
+                    </div>
+                    <div style="display:flex;gap:10px;align-items:center;padding:10px 0;">
+                      <div style="background:var(--t-red-bg);color:var(--t-red);border-radius:4px;padding:6px 8px;text-align:center;min-width:38px;"><div style="font-size:8px;font-weight:700;">FEB</div><div style="font-size:16px;font-weight:700;line-height:1;">14</div></div>
+                      <div><div style="font-size:12px;font-weight:600;color:var(--t-ink-2);">⚠ Evidence Submission Deadline</div><div style="font-size:10px;color:var(--t-muted);">All documents due to court</div></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="body-section">
+                  <div class="body-section-header"><span class="body-section-title">Expenses</span><span style="font-size:13px;font-weight:700;color:var(--t-blue);font-family:var(--ff-display);">EGP 10,500</span></div>
+                  <div class="body-section-body" style="padding:0 14px;">
+                    <div class="exp-row"><div><div class="exp-cat">Court Filing Fees</div></div><span class="exp-amt">EGP 2,500</span></div>
+                    <div class="exp-row"><div><div class="exp-cat">Expert Witness</div></div><span class="exp-amt">EGP 8,000</span></div>
+                    <button class="btn btn-ghost btn-xs" style="margin-top:8px;">+ Add Expense</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────── CASE-05 CALENDAR ─────────────── -->
+    <div class="screen" id="s-case-cal">
+      <div class="screen-meta"><span class="sid">CASE-05</span><span class="sname">Lawyer · Case Calendar</span><span class="sdomain">almansour.legalsaas.com</span></div>
+      <div class="t-topbar"><div class="t-logo">⚖ Legal<em>SaaS</em></div><div class="t-tenant-name">Al-Mansour Law Firm</div><div class="t-topbar-nav"><div class="t-nav-item">Customers</div><div class="t-nav-item">Cases</div><div class="t-nav-item">Documents</div><div class="t-nav-item active">Calendar</div></div><div class="t-topbar-right"><div class="t-avatar" style="background:var(--t-teal);">MR</div></div></div>
+      <div class="t-shell">
+        <div class="t-sidebar">
+          <div class="t-sb-section"><div class="t-sb-label">View</div>
+            <div class="t-sb-item active"><span class="t-sb-icon">📅</span>Month</div>
+            <div class="t-sb-item"><span class="t-sb-icon">📆</span>Week</div>
+            <div class="t-sb-item"><span class="t-sb-icon">📄</span>Agenda</div>
+          </div>
+          <div class="t-sb-section"><div class="t-sb-label">Upcoming</div>
+            <div style="padding:6px 10px;">
+              <div style="font-size:11px;font-weight:600;color:var(--t-amber);margin-bottom:4px;">Jan 28 — Hearing</div>
+              <div style="font-size:10px;color:var(--t-muted);">Hana v. Customs · 10:00 AM</div>
+            </div>
+            <div style="padding:6px 10px;">
+              <div style="font-size:11px;font-weight:600;color:var(--t-red);margin-bottom:4px;">Feb 14 — Deadline</div>
+              <div style="font-size:10px;color:var(--t-muted);">Evidence submission due</div>
+            </div>
+            <div style="padding:6px 10px;">
+              <div style="font-size:11px;font-weight:600;color:var(--t-blue);margin-bottom:4px;">Feb 19 — Meeting</div>
+              <div style="font-size:10px;color:var(--t-muted);">Client strategy · 2:00 PM</div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--t-white);">
+          <div style="padding:12px 20px;border-bottom:1px solid var(--t-border);display:flex;align-items:center;gap:10px;background:var(--t-white);">
+            <button class="btn btn-secondary btn-sm">← Jan</button>
+            <div style="font-family:var(--ff-display);font-size:17px;color:var(--t-ink);flex:1;text-align:center;">February 2026</div>
+            <button class="btn btn-secondary btn-sm">Mar →</button>
+            <button class="btn btn-primary btn-sm">+ Add Appointment</button>
+          </div>
+          <div style="padding:16px 20px;flex:1;overflow:auto;">
+            <div style="display:flex;gap:8px;margin-bottom:10px;font-size:11px;">
+              <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;background:var(--t-blue);border-radius:2px;display:inline-block;"></span>Meeting</span>
+              <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;background:var(--t-amber);border-radius:2px;display:inline-block;"></span>Hearing</span>
+              <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;background:var(--t-red);border-radius:2px;display:inline-block;"></span>Deadline</span>
+            </div>
+            <div class="cal-header"><div class="cal-dh">SUN</div><div class="cal-dh">MON</div><div class="cal-dh">TUE</div><div class="cal-dh">WED</div><div class="cal-dh">THU</div><div class="cal-dh">FRI</div><div class="cal-dh">SAT</div></div>
+            <div class="cal-grid">
+              <div class="cal-day other"><div class="cal-num">26</div></div><div class="cal-day other"><div class="cal-num">27</div></div><div class="cal-day other"><div class="cal-num">28</div></div><div class="cal-day other"><div class="cal-num">29</div></div><div class="cal-day other"><div class="cal-num">30</div></div><div class="cal-day other"><div class="cal-num">31</div></div><div class="cal-day"><div class="cal-num">1</div></div>
+              <div class="cal-day"><div class="cal-num">2</div></div><div class="cal-day"><div class="cal-num">3</div></div><div class="cal-day"><div class="cal-num">4</div></div><div class="cal-day"><div class="cal-num">5</div></div><div class="cal-day"><div class="cal-num">6</div></div><div class="cal-day"><div class="cal-num">7</div></div><div class="cal-day"><div class="cal-num">8</div></div>
+              <div class="cal-day"><div class="cal-num">9</div></div><div class="cal-day"><div class="cal-num">10</div></div><div class="cal-day"><div class="cal-num">11</div></div><div class="cal-day"><div class="cal-num">12</div></div><div class="cal-day"><div class="cal-num">13</div></div><div class="cal-day today"><div class="cal-num cal-today-num">14</div><div class="cal-ev ev-red">Evidence Due</div></div><div class="cal-day"><div class="cal-num">15</div></div>
+              <div class="cal-day"><div class="cal-num">16</div></div><div class="cal-day"><div class="cal-num">17</div></div><div class="cal-day today"><div class="cal-num cal-today-num">18</div><div style="font-size:8px;color:var(--t-blue);font-weight:600;">Today</div></div><div class="cal-day"><div class="cal-num">19</div><div class="cal-ev ev-blue">Client Meet 2pm</div></div><div class="cal-day"><div class="cal-num">20</div></div><div class="cal-day"><div class="cal-num">21</div></div><div class="cal-day"><div class="cal-num">22</div></div>
+              <div class="cal-day"><div class="cal-num">23</div></div><div class="cal-day"><div class="cal-num">24</div></div><div class="cal-day"><div class="cal-num">25</div></div><div class="cal-day"><div class="cal-num">26</div><div class="cal-ev ev-amber">Court 10am</div></div><div class="cal-day"><div class="cal-num">27</div></div><div class="cal-day"><div class="cal-num">28</div></div><div class="cal-day other"><div class="cal-num">1</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────── DOC-01 LIBRARY ─────────────── -->
+    <div class="screen" id="s-doc-lib">
+      <div class="screen-meta"><span class="sid">DOC-01</span><span class="sname">Lawyer · Document Library — Master/Detail</span><span class="sdomain">almansour.legalsaas.com</span></div>
+      <div class="t-topbar"><div class="t-logo">⚖ Legal<em>SaaS</em></div><div class="t-tenant-name">Al-Mansour Law Firm</div><div class="t-topbar-nav"><div class="t-nav-item">Cases</div><div class="t-nav-item active">Documents</div><div class="t-nav-item">Calendar</div></div><div class="t-topbar-right"><div class="t-avatar" style="background:var(--t-teal);">MR</div></div></div>
+      <div class="t-shell">
+        <!-- Tree sidebar -->
+        <div class="t-sidebar" style="width:240px;">
+          <div class="t-sb-section"><div class="t-sb-label">Library</div>
+            <div class="t-sb-item active"><span class="t-sb-icon">📁</span>All Documents<span class="t-sb-count">1,204</span></div>
+            <div class="t-sb-item"><span class="t-sb-icon">📂</span>Cases</div>
+            <div class="t-sb-item" style="padding-left:24px;font-size:11.5px;"><span class="t-sb-icon" style="font-size:12px;">📂</span>C-2024-089 Hana</div>
+            <div class="t-sb-item" style="padding-left:24px;font-size:11.5px;"><span class="t-sb-icon" style="font-size:12px;">📂</span>C-2024-112 Trademark</div>
+            <div class="t-sb-item" style="padding-left:24px;font-size:11.5px;"><span class="t-sb-icon" style="font-size:12px;">📂</span>C-2024-134 Employment</div>
+            <div class="t-sb-item"><span class="t-sb-icon">📂</span>Customers</div>
+            <div class="t-sb-item" style="padding-left:24px;font-size:11.5px;"><span class="t-sb-icon" style="font-size:12px;">📄</span>Hana Electronics</div>
+            <div class="t-sb-item" style="padding-left:24px;font-size:11.5px;"><span class="t-sb-icon" style="font-size:12px;">📄</span>Yusuf Al-Amir</div>
+            <div class="t-sb-item"><span class="t-sb-icon">📂</span>Shared Templates</div>
+          </div>
+          <div style="padding:12px;border-top:1px solid var(--t-border);margin-top:auto;"><button class="btn btn-primary btn-sm" style="width:100%;justify-content:center;">↑ Upload</button></div>
+        </div>
+        <!-- Master: file list -->
+        <div class="t-master" style="width:400px;">
+          <div class="t-master-header">
+            <div class="t-master-title">All Documents — 1,204</div>
+            <input class="t-search-input" placeholder="Search documents…" />
+          </div>
+          <div style="padding:8px 10px;border-bottom:1px solid var(--t-border);display:flex;gap:6px;">
+            <select class="f-select" style="font-size:11px;flex:1;"><option>All Types</option><option>PDF</option><option>Image</option></select>
+            <select class="f-select" style="font-size:11px;flex:1;"><option>All Categories</option><option>Evidence</option><option>Contracts</option></select>
+          </div>
+          <div class="t-master-list">
+            <div class="t-list-item selected"><div style="display:flex;gap:8px;align-items:flex-start;"><span style="font-size:18px;">📄</span><div style="flex:1;"><div class="item-title" style="font-size:12px;">Customs_Seizure_Notice.pdf</div><div class="item-sub">Evidence · C-2024-089 · 1.2 MB</div><div class="item-meta"><span class="badge badge-amber" style="font-size:9px;">Evidence</span><span class="badge badge-blue" style="font-size:9px;">Team</span></div></div></div></div>
+            <div class="t-list-item"><div style="display:flex;gap:8px;align-items:flex-start;"><span style="font-size:18px;">📄</span><div style="flex:1;"><div class="item-title" style="font-size:12px;">Hana_Import_License.pdf</div><div class="item-sub">Contracts · C-2024-089 · 890 KB</div><div class="item-meta"><span class="badge badge-blue" style="font-size:9px;">Contracts</span><span class="badge badge-green" style="font-size:9px;">Tenant</span></div></div></div></div>
+            <div class="t-list-item"><div style="display:flex;gap:8px;align-items:flex-start;"><span style="font-size:18px;">🖼</span><div style="flex:1;"><div class="item-title" style="font-size:12px;">Yusuf_National_ID.jpg</div><div class="item-sub">Identity · Yusuf Al-Amir · 342 KB</div><div class="item-meta"><span class="badge badge-teal" style="font-size:9px;">Identity</span><span class="badge badge-red" style="font-size:9px;">🔒 Private</span></div></div></div></div>
+            <div class="t-list-item"><div style="display:flex;gap:8px;align-items:flex-start;"><span style="font-size:18px;">📄</span><div style="flex:1;"><div class="item-title" style="font-size:12px;">Expert_Witness_Report.pdf</div><div class="item-sub">Evidence · C-2024-089 · 2.4 MB</div><div class="item-meta"><span class="badge badge-amber" style="font-size:9px;">Evidence</span><span class="badge badge-blue" style="font-size:9px;">Team</span></div></div></div></div>
+            <div class="t-list-item"><div style="display:flex;gap:8px;align-items:flex-start;"><span style="font-size:18px;">📄</span><div style="flex:1;"><div class="item-title" style="font-size:12px;">Contract_Final_v3.pdf</div><div class="item-sub">Contracts · C-2024-112 · 2.1 MB</div><div class="item-meta"><span class="badge badge-blue" style="font-size:9px;">Contracts</span><span class="badge badge-blue" style="font-size:9px;">Team</span><span class="badge badge-gray" style="font-size:9px;">v3</span></div></div></div></div>
+          </div>
+        </div>
+        <!-- Detail: document preview pane -->
+        <div class="t-detail">
+          <div class="t-detail-topbar"><div class="t-breadcrumb">Documents <span style="opacity:0.4;">›</span> C-2024-089 <span style="opacity:0.4;">›</span><span>Customs_Seizure_Notice.pdf</span></div><div class="t-detail-actions"><button class="btn btn-secondary btn-sm">Access Log</button><button class="btn btn-primary btn-sm">↓ Download</button></div></div>
+          <!-- Document preview area -->
+          <div style="flex:1;display:flex;overflow:hidden;">
+            <div style="flex:1;background:var(--t-surface);display:flex;align-items:center;justify-content:center;border-right:1px solid var(--t-border);">
+              <div style="text-align:center;color:var(--t-muted);">
+                <div style="font-size:60px;margin-bottom:12px;opacity:0.3;">📄</div>
+                <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Customs_Seizure_Notice.pdf</div>
+                <div style="font-size:11px;margin-bottom:16px;">PDF Preview · 1.2 MB · 4 pages</div>
+                <div style="background:var(--t-white);border:1px solid var(--t-border);border-radius:6px;padding:20px 28px;width:280px;height:360px;display:flex;align-items:center;justify-content:center;opacity:0.5;">
+                  <div style="font-size:11px;text-align:center;color:var(--t-muted);">PDF Viewer<br/>renders here</div>
+                </div>
+                <button class="btn btn-primary btn-sm" style="margin-top:12px;">↓ Download (SAS Link · 15min)</button>
+              </div>
+            </div>
+            <!-- Metadata panel -->
+            <div class="t-side-panel">
+              <div class="t-panel-section">
+                <div class="t-panel-label">Document Info</div>
+                <div class="t-field"><div class="t-field-label">Name</div><div class="t-field-value">Customs_Seizure_Notice.pdf</div></div>
+                <div class="t-field"><div class="t-field-label">Category</div><div class="t-field-value"><span class="badge badge-amber">Evidence</span></div></div>
+                <div class="t-field"><div class="t-field-label">Status</div><div class="t-field-value"><span class="badge badge-green">Active</span></div></div>
+                <div class="t-field"><div class="t-field-label">Size</div><div class="t-field-value" style="font-family:var(--ff-mono);font-size:11px;">1.2 MB · 4 pages</div></div>
+                <div class="t-field"><div class="t-field-label">Version</div><div class="t-field-value">v1 (current)</div></div>
+              </div>
+              <div class="t-panel-section">
+                <div class="t-panel-label">Access Control</div>
+                <div class="t-field"><div class="t-field-label">Access Level</div><div class="t-field-value"><span class="badge badge-blue">Team</span></div></div>
+                <div class="t-field"><div class="t-field-label">Uploaded By</div><div class="t-field-value">Mohamed Rashid</div></div>
+                <div class="t-field"><div class="t-field-label">Upload Date</div><div class="t-field-value cell-mono" style="font-size:11px;">2026-02-16 14:32 UTC</div></div>
+                <div class="t-field"><div class="t-field-label">Linked To</div><div class="t-field-value t-field-link">#C-2024-089</div></div>
+              </div>
+              <div class="t-panel-section">
+                <div class="t-panel-label">Security</div>
+                <div style="font-size:11px;color:var(--t-green);display:flex;align-items:center;gap:5px;margin-bottom:8px;">✓ Virus scan passed</div>
+                <div style="font-size:11px;color:var(--t-green);display:flex;align-items:center;gap:5px;">🔒 Encrypted at rest (AES-256)</div>
+              </div>
+              <div class="t-panel-section">
+                <div class="t-panel-label">Recent Access</div>
+                <div class="act-item" style="padding:6px 0;"><div class="mini-av" style="width:20px;height:20px;background:var(--t-blue);font-size:8px;flex-shrink:0;">MR</div><div><div class="act-text" style="font-size:11px;"><b>M. Rashid</b> downloaded</div><div class="act-time">Today 09:14</div></div></div>
+                <div class="act-item" style="padding:6px 0;border:none;"><div class="mini-av" style="width:20px;height:20px;background:var(--t-teal);font-size:8px;flex-shrink:0;">LA</div><div><div class="act-text" style="font-size:11px;"><b>L. Ahmed</b> viewed</div><div class="act-time">Yesterday 16:30</div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────── DOC-03 UPLOAD ─────────────── -->
+    <div class="screen" id="s-doc-upload">
+      <div class="screen-meta"><span class="sid">DOC-03</span><span class="sname">Lawyer · Upload Document</span><span class="sdomain">almansour.legalsaas.com</span></div>
+      <div class="t-topbar"><div class="t-logo">⚖ Legal<em>SaaS</em></div><div class="t-tenant-name">Al-Mansour Law Firm</div><div class="t-topbar-nav"><div class="t-nav-item active">Documents</div></div><div class="t-topbar-right"><div class="t-avatar" style="background:var(--t-teal);">MR</div></div></div>
+      <div style="flex:1;overflow-y:auto;padding:32px;background:var(--t-surface);">
+        <div style="max-width:640px;margin:0 auto;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
+            <button class="btn btn-ghost btn-sm" style="color:var(--t-muted);">← Documents</button>
+            <span style="color:var(--t-muted);">›</span>
+            <span style="font-family:var(--ff-display);font-size:20px;color:var(--t-ink);">Upload Document</span>
+          </div>
+          <div class="card" style="padding:24px;">
+            <div class="upload-zone" style="margin-bottom:18px;">
+              <div style="font-size:28px;margin-bottom:8px;opacity:0.4;">☁</div>
+              <div style="font-size:13px;font-weight:700;color:var(--t-ink-2);margin-bottom:3px;">Drag & drop files here</div>
+              <div style="font-size:11px;color:var(--t-muted);margin-bottom:10px;">PDF, DOC, DOCX, JPG, PNG · Max 50 MB per file</div>
+              <button class="btn btn-secondary btn-sm">Browse Files</button>
+            </div>
+            <!-- File queued -->
+            <div style="background:var(--t-blue-bg);border:1px solid var(--t-blue-mid);border-radius:5px;padding:10px 12px;display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+              <span style="font-size:18px;">📄</span>
+              <div style="flex:1;"><div style="font-size:12px;font-weight:600;color:var(--t-ink-2);">Expert_Witness_Report.pdf</div><div style="font-size:10px;color:var(--t-blue);">2.4 MB · Ready</div><div class="prog-wrap" style="margin-top:5px;"><div class="prog-bar" style="width:100%;background:var(--t-blue);"></div></div></div>
+              <button class="btn btn-ghost btn-xs" style="color:var(--t-red);">✗</button>
+            </div>
+            <div class="f-row f-row-2">
+              <div class="f-group"><label class="f-label">Document Category *</label><select class="f-select"><option>Evidence</option><option>Pleadings</option><option>Contracts</option><option>Identity / POA</option><option>Other</option></select></div>
+              <div class="f-group"><label class="f-label">Access Level *</label><select class="f-select"><option>Team (all lawyers)</option><option>Private (only me)</option><option>Tenant-wide</option></select></div>
+            </div>
+            <div class="f-group"><label class="f-label">Link to Case or Customer</label><select class="f-select"><option>⚖ C-2024-089 — Hana v. Cairo Customs</option><option>⚖ C-2024-112 — Trademark</option><option>👤 Hana Electronics LLC</option></select></div>
+            <div class="f-group"><label class="f-label">Description (optional)</label><input class="f-input" placeholder="Brief description of this document…" /></div>
+            <div style="background:var(--t-green-bg);border:1px solid #A7F3D0;border-radius:5px;padding:10px 12px;font-size:11px;color:var(--t-green);margin-bottom:16px;">🔒 Encrypted at rest · Virus-scanned before access · 15-min SAS links for downloads</div>
+            <div style="display:flex;justify-content:space-between;">
+              <button class="btn btn-ghost btn-sm">Cancel</button>
+              <button class="btn btn-primary">↑ Upload Securely</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────── TA-06 BACKUP ─────────────── -->
+    <div class="screen" id="s-ta-backup">
+      <div class="screen-meta"><span class="sid">TA-06</span><span class="sname">Tenant Admin · Backup & Restore</span><span class="sdomain">almansour.legalsaas.com</span></div>
+      <div class="t-topbar"><div class="t-logo">⚖ Legal<em>SaaS</em></div><div class="t-tenant-name">Al-Mansour Law Firm</div><div class="t-topbar-right"><span class="t-role-badge" style="background:rgba(26,86,219,0.2);color:#93C5FD;">Admin</span><div class="t-avatar" style="background:var(--t-blue);">AA</div></div></div>
+      <div class="t-shell">
+        <div class="t-sidebar"><div class="t-sb-section"><div class="t-sb-label">Configuration</div><div class="t-sb-item"><span class="t-sb-icon">🏛</span>Courts</div><div class="t-sb-item active"><span class="t-sb-icon">💾</span>Backup</div><div class="t-sb-item"><span class="t-sb-icon">📋</span>Audit Logs</div></div></div>
+        <div style="flex:1;overflow-y:auto;padding:24px;background:var(--t-surface);">
+          <div style="font-family:var(--ff-display);font-size:20px;color:var(--t-ink);margin-bottom:16px;">Backup & Data</div>
+          <div class="grid-2" style="margin-bottom:14px;">
+            <div class="stat-card" style="border-left:3px solid var(--t-green);"><div class="stat-label">Last Backup</div><div class="stat-value" style="font-size:18px;color:var(--t-green);">2 hours ago</div><div class="stat-sub">2026-02-18 07:00 UTC · Automatic</div></div>
+            <div class="stat-card" style="border-left:3px solid var(--t-blue);"><div class="stat-label">Retention Window</div><div class="stat-value" style="font-size:18px;color:var(--t-blue);">35 days</div><div class="stat-sub">Point-in-time recovery available</div></div>
+          </div>
+          <div class="body-section" style="margin-bottom:14px;">
+            <div class="body-section-header"><span class="body-section-title">Backup History</span></div>
+            <div class="body-section-body" style="padding:0;">
+              <table class="t-table">
+                <thead><tr><th>Date / Time</th><th>Type</th><th>Status</th><th>Size</th></tr></thead>
+                <tbody>
+                  <tr><td class="cell-mono">2026-02-18 07:00 UTC</td><td>Full (Auto)</td><td><span class="badge badge-green">✓ Complete</span></td><td class="cell-mono">4.2 GB</td></tr>
+                  <tr><td class="cell-mono">2026-02-17 07:00 UTC</td><td>Full (Auto)</td><td><span class="badge badge-green">✓ Complete</span></td><td class="cell-mono">4.1 GB</td></tr>
+                  <tr><td class="cell-mono">2026-02-16 07:00 UTC</td><td>Full (Auto)</td><td><span class="badge badge-green">✓ Complete</span></td><td class="cell-mono">3.9 GB</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="body-section">
+            <div class="body-section-header"><span class="body-section-title">Request Data Restore</span><span class="badge badge-amber" style="font-size:9px;">Admin Only</span></div>
+            <div class="body-section-body">
+              <div style="font-size:12px;color:var(--t-muted);margin-bottom:12px;">Restore requests are executed by the platform team within 4 hours. You will be notified when complete.</div>
+              <div class="f-row f-row-2">
+                <div class="f-group"><label class="f-label">Restore Point</label><select class="f-select"><option>2026-02-17 07:00 UTC (yesterday)</option><option>2026-02-16 07:00 UTC</option></select></div>
+                <div class="f-group"><label class="f-label">Scope</label><select class="f-select"><option>Full tenant restore</option><option>Specific entity (case/customer)</option></select></div>
+              </div>
+              <div class="f-group"><label class="f-label">Reason for Restore</label><input class="f-input" placeholder="Describe what needs to be restored and why…" /></div>
+              <button class="btn btn-primary">Submit Restore Request</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /canvas-scale -->
+</div><!-- /canvas -->
+
+<script>
+  let zoom = 0.62;
+  const scaleEl = document.getElementById('canvas-scale');
+
+  function applyZoom() {
+    scaleEl.style.transform = `scale(${zoom})`;
+    document.getElementById('zoom-pct').textContent = Math.round(zoom * 100) + '%';
+  }
+
+  window.zoom = function(d) {
+    zoom = Math.max(0.25, Math.min(1.2, zoom + d));
+    applyZoom();
+  };
+
+  applyZoom();
+
+  window.showScreen = function(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const el = document.getElementById('s-' + id.replace(/-/g, '-'));
+    if (el) el.classList.add('active');
+    document.getElementById('screen-select').value = id;
+    // Scroll canvas to top
+    document.getElementById('canvas').scrollTo({ top: 0, left: 0 });
+  };
+
+  // Show first screen by default
+  showScreen('ta-dash');
+
+  window.setPortal = function(portal, btn) {
+    document.querySelectorAll('.portal-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+  };
+</script>
+</body>
+</html>
